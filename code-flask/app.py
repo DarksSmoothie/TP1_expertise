@@ -64,6 +64,7 @@ def accueil():
 @app.post("/membres")
 def ajouter_membre():
     nom = request.form["nom"]
+    groupe = request.form["/groupes/nom"]
 
     with ouvrir_base() as conn:
         conn.execute(
