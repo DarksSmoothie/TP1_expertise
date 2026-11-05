@@ -4,12 +4,12 @@ from base import ouvrir_base
 
 # Le HTML de la page.
 PAGE = """
-<body style="background-image: url('{{ url_for('static', filename='photo.png') }}'); background-size: 1200px; background-repeat: no-repeat;">
+<body style="background-image: url('{{ url_for('static', filename='photo.png') }}'); background-size: 1400px; background-repeat: no-repeat;">
   
   <h1>Partage de frais</h1> 
 
   <div style="text-align: center;">
-    <img src="{{ url_for('static', filename='new_logo.jpg') }}" alt="Logo">
+    <img src="{{ url_for('static', filename='transparent.png') }}" alt="Logo" width="600" height="400">
   </div>
 
   <h2>Membres</h2>
