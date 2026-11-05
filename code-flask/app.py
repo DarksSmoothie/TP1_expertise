@@ -27,16 +27,18 @@ app = Flask(__name__)
 def accueil():
     with ouvrir_base() as conn:
         membres = conn.execute("SELECT nom FROM membres").fetchall()
+        groupes = conn.execute("SELECT nom FROM groupes").fetchall()
     return render_template_string(PAGE, membres=membres)
 
 
-# Exemple : reçoit le formulaire et ajoute un membre au groupe 1.
+# Exemple : reçoit le formulaire et ajoute un membre au groupe.
 @app.post("/membres")
 def ajouter_membre():
     nom = request.form["nom"]
 
     with ouvrir_base() as conn:
         conn.execute("INSERT INTO membres (groupe_id, nom) VALUES (?, ?)", [nom])
+
     return redirect("/")
 
 
