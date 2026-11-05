@@ -64,12 +64,11 @@ def accueil():
 @app.post("/membres")
 def ajouter_membre():
     nom = request.form["nom"]
-    groupe_id = request.form["groupe_id"]
 
     with ouvrir_base() as conn:
         conn.execute(
             "INSERT INTO membres (groupe_id, nom) VALUES (?, ?)",
-            [groupe_id, nom]
+            [nom]
         )
 
     return redirect("/")
