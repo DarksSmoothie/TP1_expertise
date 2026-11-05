@@ -40,7 +40,7 @@ def ajouter_membre():
     nom = request.form["nom"]
 
     with ouvrir_base() as conn:
-        conn.execute("INSERT INTO membres (groupe_id, nom) VALUES (?, ?)", [nom])
+        conn.execute("INSERT INTO membres (groupe_id, nom) VALUES (1, ?)", [nom])
 
     return redirect("/")
 
