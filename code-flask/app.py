@@ -37,18 +37,20 @@ def accueil():
     return render_template_string(PAGE, membres=membres)
 
 
-# Exemple : reçoit le formulaire et ajoute un membre au groupe.
 @app.post("/membres")
 def ajouter_membre():
     nom = request.form["nom"]
+    groupe_id = request.form["groupe_id"]
 
     with ouvrir_base() as conn:
-        conn.execute("INSERT INTO membres (groupe_id, nom) VALUES (?, ?)", [nom])
+        conn.execute(
+            "INSERT INTO membres (groupe_id, nom) VALUES (?, ?)",
+            [groupe_id, nom]
+        )
 
     return redirect("/")
 
 
-# Ajoutez vos fonctions ici. Le HTML va dans PAGE.
 @app.post("/groupes")
 def ajouter_groupe():
     nom = request.form["nom"]
@@ -59,6 +61,22 @@ def ajouter_groupe():
         conn.execute(
             "INSERT INTO groupes (nom, date_debut, date_fin) VALUES (?, ?, ?)",
             [nom, date_debut, date_fin]
+        )
+
+    return redirect("/")
+
+@app.post("/depenses")
+def ajouter_depenses():
+    groupe_id = request.form["groupe_id"]
+    libelle = request.form["libelle"]
+    montant_centimes = request.form["montant_centimes"]
+    date = request.form["date"]
+    payeur_id = request.form["payeur_id"]
+
+    with ouvrir_base() as conn:
+        conn.execute(
+            "INSERT INTO depenses (groupe_id, libelle, montant_centimes, date, payeur_id) )",
+            [groupe_id, libelle, montant_centimes, date, payeur_id]
         )
 
     return redirect("/")
