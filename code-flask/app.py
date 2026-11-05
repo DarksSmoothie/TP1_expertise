@@ -180,7 +180,7 @@ def ajouter_depenses():
 
         for participant_id in participants:
             conn.execute(
-                "INSERT INTO participations (depense_id, membre_id) VALUES (?, ?)",
+                "INSERT INTO participants (depense_id, membre_id) VALUES (?, ?)",
                 [depense_id, participant_id]
             )
 
