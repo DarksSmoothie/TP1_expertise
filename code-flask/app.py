@@ -34,12 +34,26 @@ def accueil():
 @app.post("/membres")
 def ajouter_membre():
     nom = request.form["nom"]
+
     with ouvrir_base() as conn:
-        conn.execute("INSERT INTO membres (groupe_id, nom) VALUES (1, ?)", [nom])
+        conn.execute("INSERT INTO membres (groupe_id, nom) VALUES (?, ?)", [nom])
     return redirect("/")
 
 
 # Ajoutez vos fonctions ici. Le HTML va dans PAGE.
+@app.post("/groupes")
+def ajouter_groupe():
+    nom = request.form["nom"]
+    date_debut = request.form["date_debut"]
+    date_fin = request.form["date_fin"]
+
+    with ouvrir_base() as conn:
+        conn.execute(
+            "INSERT INTO groupes (nom, date_debut, date_fin) VALUES (?, ?, ?)",
+            [nom, date_debut, date_fin]
+        )
+
+    return redirect("/")
 
 
 if __name__ == "__main__":
