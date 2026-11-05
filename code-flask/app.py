@@ -50,20 +50,30 @@ app = Flask(__name__)
 @app.get("/")
 def accueil():
     with ouvrir_base() as conn:
-        membres = conn.execute("SELECT nom FROM membres").fetchall()
-        groupes = conn.execute("SELECT nom FROM groupes").fetchall()
-    return render_template_string(PAGE, membres=membres)
+        membres = conn.execute(
+            "SELECT id, nom, groupe_id FROM membres"
+        ).fetchall()
+
+        groupes = conn.execute(
+            "SELECT id, nom FROM groupes"
+        ).fetchall()
+
+    return render_template_string(
+        PAGE,
+        membres=membres,
+        groupes=groupes
+    )
 
 
 @app.post("/membres")
 def ajouter_membre():
     nom = request.form["nom"]
-    groupe_id = request.form["groupe_id"]
+    groupe = request.form["/groupes/nom"]
 
     with ouvrir_base() as conn:
         conn.execute(
             "INSERT INTO membres (groupe_id, nom) VALUES (?, ?)",
-            [groupe_id, nom]
+            [nom]
         )
 
     return redirect("/")
@@ -93,8 +103,20 @@ def ajouter_depenses():
 
     with ouvrir_base() as conn:
         conn.execute(
-            "INSERT INTO depenses (groupe_id, libelle, montant_centimes, date, payeur_id) )",
+            "INSERT INTO depenses (groupe_id, libelle, montant_centimes, date, payeur_id) VALUES (?, ?, ?, ?, ?)",
             [groupe_id, libelle, montant_centimes, date, payeur_id]
+        )
+
+    return redirect("/")
+
+@app.post("/depenses/supprimer")
+def supprimer_depense():
+    depense_id = request.form["id"]
+
+    with ouvrir_base() as conn:
+        conn.execute(
+            "DELETE FROM depenses WHERE id = ?",
+            [depense_id]
         )
 
     return redirect("/")
