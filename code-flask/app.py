@@ -21,6 +21,8 @@ PAGE = """
 
   <form method="post" action="/membres">
     <input name="nom" placeholder="Nom" required>
+    <input name="groupe_id" placeholder="ID du groupe" required>
+    
     <button>Ajouter</button>
   </form>
 
@@ -54,7 +56,6 @@ PAGE = """
     <input name="id" placeholder="ID de la dépense" required>
     <button>Supprimer</button>
   </form>
-
 
 </body>
 """
@@ -192,7 +193,7 @@ def supprimer_depense():
 
     with ouvrir_base() as conn:
         conn.execute(
-            "DELETE FROM participations WHERE depense_id = ?",
+            "DELETE FROM participants WHERE depense_id = ?",
             [depense_id]
         )
 
@@ -233,7 +234,7 @@ def calculer_soldes(groupe_id):
 
         for depense in depenses:
             participants = conn.execute(
-                "SELECT membre_id FROM participations WHERE depense_id = ? ORDER BY rowid",
+                "SELECT membre_id FROM participants WHERE depense_id = ? ORDER BY rowid",
                 [depense["id"]]
             ).fetchall()
 
