@@ -68,12 +68,20 @@ def accueil():
 @app.post("/membres")
 def ajouter_membre():
     nom = request.form["nom"]
-    groupe = request.form["/groupes/nom"]
+    groupe_id = request.form["groupe_id"]
 
     with ouvrir_base() as conn:
+        groupe = conn.execute(
+            "SELECT id FROM groupes WHERE id = ?",
+            [groupe_id]
+        ).fetchone()
+
+        if groupe is None:
+            return "Groupe inexistant", 400
+
         conn.execute(
             "INSERT INTO membres (groupe_id, nom) VALUES (?, ?)",
-            [nom]
+            [groupe_id, nom]
         )
 
     return redirect("/")
@@ -81,9 +89,15 @@ def ajouter_membre():
 
 @app.post("/groupes")
 def ajouter_groupe():
-    nom = request.form["nom"]
+    nom = request.form["nom"].strip()
     date_debut = request.form["date_debut"]
     date_fin = request.form["date_fin"]
+
+    if not nom:
+        return "Le nom est obligatoire", 400
+
+    if date_debut > date_fin:
+        return "La date de fin doit être après la date de début", 400
 
     with ouvrir_base() as conn:
         conn.execute(
@@ -97,15 +111,56 @@ def ajouter_groupe():
 def ajouter_depenses():
     groupe_id = request.form["groupe_id"]
     libelle = request.form["libelle"]
-    montant_centimes = request.form["montant_centimes"]
+    montant_centimes = int(request.form["montant_centimes"])
     date = request.form["date"]
     payeur_id = request.form["payeur_id"]
+    participants = request.form.getlist("participants")
+
+    if montant_centimes <= 0:
+        return "Le montant doit être positif", 400
+
+    if not participants:
+        return "Il faut au moins un participant", 400
+
+    if len(participants) != len(set(participants)):
+        return "Un participant ne peut pas être sélectionné plusieurs fois", 400
 
     with ouvrir_base() as conn:
-        conn.execute(
+        groupe = conn.execute(
+            "SELECT date_debut, date_fin FROM groupes WHERE id = ?",
+            [groupe_id]
+        ).fetchone()
+
+        if groupe is None:
+            return "Groupe inexistant", 400
+
+        if not (groupe["date_debut"] <= date <= groupe["date_fin"]):
+            return "La dépense doit être comprise dans le séjour", 400
+
+        membres = conn.execute(
+            "SELECT id FROM membres WHERE groupe_id = ?",
+            [groupe_id]
+        ).fetchall()
+
+        ids_membres = {str(membre["id"]) for membre in membres}
+
+        if payeur_id not in ids_membres:
+            return "Le payeur n'appartient pas au groupe", 400
+
+        if any(p not in ids_membres for p in participants):
+            return "Un participant n'appartient pas au groupe", 400
+
+
+        depense_id = conn.execute(
             "INSERT INTO depenses (groupe_id, libelle, montant_centimes, date, payeur_id) VALUES (?, ?, ?, ?, ?)",
             [groupe_id, libelle, montant_centimes, date, payeur_id]
-        )
+        ).lastrowid
+
+        for participant_id in participants:
+            conn.execute(
+                "INSERT INTO participations (depense_id, membre_id) VALUES (?, ?)",
+                [depense_id, participant_id]
+            )
 
     return redirect("/")
 
