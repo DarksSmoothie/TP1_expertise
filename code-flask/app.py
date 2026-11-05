@@ -5,8 +5,6 @@ from base import ouvrir_base
 # Le HTML de la page.
 PAGE = """
 
-<img src="TP1_expertise/logo_tricount.jpg" alt="Tricount" width="200">
-
 <h1>Partage de frais</h1>
 
 <h2>Membres</h2>
@@ -20,6 +18,11 @@ PAGE = """
   <input name="nom" placeholder="Nom" required>
   <button>Ajouter</button>
 </form>
+
+<div style="text-align: center;">
+  <img src="TP1_expertise/logo_tricount.jpg" alt="Tricount" width="200" height="200">
+</div>
+
 """
 
 app = Flask(__name__)
