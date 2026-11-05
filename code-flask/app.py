@@ -5,7 +5,11 @@ from base import ouvrir_base
 # Le HTML de la page.
 PAGE = """
 
-<h1>Partage de frais</h1>
+<h1>Partage de frais</h1> 
+
+<div style="text-align: center;">
+  <img src="TP1_expertise/logo_tricount.jpg" alt="Tricount" width="200" height="200">
+</div>
 
 <h2>Membres</h2>
 <ul>
@@ -19,9 +23,19 @@ PAGE = """
   <button>Ajouter</button>
 </form>
 
-<div style="text-align: center;">
-  <img src="TP1_expertise/logo_tricount.jpg" alt="Tricount" width="200" height="200">
-</div>
+<h2>Groupes</h2>
+<ul>
+  {% for groupe in groupes %}
+    <li>{{ groupe["nom"] }}</li>
+  {% endfor %}
+</ul>
+
+<form method="post" action="/groupes">
+  <input name="nom" placeholder="Nom" required>
+  <input name="date_debut" type="date" required>
+  <input name="date_fin" type="date" required>
+  <button>Ajouter</button>
+</form>
 
 """
 
