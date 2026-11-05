@@ -38,6 +38,22 @@ PAGE = """
     <button>Ajouter</button>
   </form>
 
+  <h2>Dépenses</h2>
+  <form method="post" action="/depenses">
+    <input name="groupe_id" placeholder="ID du groupe" required>
+    <input name="libelle" placeholder="Libellé" required>
+    <input name="montant_centimes" type="number" placeholder="Montant (en centimes)" required>
+    <input name="date" type="date" required>
+    <input name="payeur_id" placeholder="ID du payeur" required>
+    <input name="participants" placeholder="IDs des participants (séparés par des virgules)" required>
+    <button>Ajouter</button>
+  </form>
+
+  <h2>Supprimer une dépense</h2>
+  <form method="post" action="/depenses/supprimer">
+    <input name="id" placeholder="ID de la dépense" required>
+    <button>Supprimer</button>
+  </form>
 
 
 </body>
