@@ -95,6 +95,18 @@ def ajouter_depenses():
 
     return redirect("/")
 
+@app.post("/depenses")
+def supprimer_depenses():
+    id = request.form["id"]
+
+    with ouvrir_base() as conn:
+        conn.execute(
+            "DELETE INTO depenses (id, groupe_id, libelle, montant_centimes, date, payeur_id) )",
+            [id]
+        )
+
+    return redirect("/")
+
 
 if __name__ == "__main__":
     app.run(debug=True)
