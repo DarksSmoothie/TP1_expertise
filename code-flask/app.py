@@ -4,6 +4,9 @@ from base import ouvrir_base
 
 # Le HTML de la page.
 PAGE = """
+
+<img src="TP1_expertise/logo_tricount.jpg" alt="Tricount" width="200">
+
 <h1>Partage de frais</h1>
 
 <h2>Membres</h2>
