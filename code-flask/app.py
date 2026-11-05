@@ -58,7 +58,7 @@ def ajouter_membre():
 
     with ouvrir_base() as conn:
         conn.execute(
-            "INSERT INTO membres (groupe_id, nom) VALUES (?, ?)",
+            "INSERT INTO membres (groupe_id, nom) VALUES (1, ?)",
             [groupe_id, nom]
         )
 
