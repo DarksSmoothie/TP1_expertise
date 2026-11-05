@@ -192,6 +192,20 @@ def supprimer_depense():
 
     return redirect("/")
 
+def repartir_depense(montant_centimes, participants):
+    if montant_centimes <= 0 or not participants:
+        raise ValueError("Dépense invalide")
+
+    part = montant_centimes // len(participants)
+    reste = montant_centimes % len(participants)
+
+    parts = {}
+
+    for i, participant_id in enumerate(participants):
+        parts[participant_id] = part + (reste if i == 0 else 0)
+
+    return parts
+
 
 if __name__ == "__main__":
     app.run(debug=True)
