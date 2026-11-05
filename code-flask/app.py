@@ -4,39 +4,43 @@ from base import ouvrir_base
 
 # Le HTML de la page.
 PAGE = """
+<body style="background-image: url('{{ url_for('static', filename='photo.png') }}'); background-size: 1200px; background-repeat: no-repeat;">
+  
+  <h1>Partage de frais</h1> 
 
-<h1>Partage de frais</h1> 
+  <div style="text-align: center;">
+    <img src="{{ url_for('static', filename='new_logo.jpg') }}" alt="Logo">
+  </div>
 
-<div style="text-align: center;">
-  <img src="TP1_expertise/logo_tricount.jpg" alt="Tricount" width="200" height="200">
-</div>
+  <h2>Membres</h2>
+  <ul>
+    {% for membre in membres %}
+      <li>{{ membre["nom"] }}</li>
+    {% endfor %}
+  </ul>
 
-<h2>Membres</h2>
-<ul>
-  {% for membre in membres %}
-    <li>{{ membre["nom"] }}</li>
-  {% endfor %}
-</ul>
+  <form method="post" action="/membres">
+    <input name="nom" placeholder="Nom" required>
+    <button>Ajouter</button>
+  </form>
 
-<form method="post" action="/membres">
-  <input name="nom" placeholder="Nom" required>
-  <button>Ajouter</button>
-</form>
+  <h2>Groupes</h2>
+  <ul>
+    {% for groupe in groupes %}
+      <li>{{ groupe["nom"] }}</li>
+    {% endfor %}
+  </ul>
 
-<h2>Groupes</h2>
-<ul>
-  {% for groupe in groupes %}
-    <li>{{ groupe["nom"] }}</li>
-  {% endfor %}
-</ul>
+  <form method="post" action="/groupes">
+    <input name="nom" placeholder="Nom" required>
+    <input name="date_debut" type="date" required>
+    <input name="date_fin" type="date" required>
+    <button>Ajouter</button>
+  </form>
 
-<form method="post" action="/groupes">
-  <input name="nom" placeholder="Nom" required>
-  <input name="date_debut" type="date" required>
-  <input name="date_fin" type="date" required>
-  <button>Ajouter</button>
-</form>
 
+
+</body>
 """
 
 app = Flask(__name__)
