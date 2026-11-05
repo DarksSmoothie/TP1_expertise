@@ -74,10 +74,16 @@ def accueil():
             "SELECT id, nom FROM groupes"
         ).fetchall()
 
+    soldes = {}
+
+    for groupe in groupes:
+        soldes.update(calculer_soldes(groupe["id"]))
+
     return render_template_string(
         PAGE,
         membres=membres,
-        groupes=groupes
+        groupes=groupes,
+        soldes=soldes
     )
 
 
@@ -186,6 +192,11 @@ def supprimer_depense():
 
     with ouvrir_base() as conn:
         conn.execute(
+            "DELETE FROM participations WHERE depense_id = ?",
+            [depense_id]
+        )
+
+        conn.execute(
             "DELETE FROM depenses WHERE id = ?",
             [depense_id]
         )
@@ -205,6 +216,40 @@ def repartir_depense(montant_centimes, participants):
         parts[participant_id] = part + (reste if i == 0 else 0)
 
     return parts
+
+def calculer_soldes(groupe_id):
+    with ouvrir_base() as conn:
+        membres = conn.execute(
+            "SELECT id FROM membres WHERE groupe_id = ?",
+            [groupe_id]
+        ).fetchall()
+
+        depenses = conn.execute(
+            "SELECT id, montant_centimes, payeur_id FROM depenses WHERE groupe_id = ?",
+            [groupe_id]
+        ).fetchall()
+
+        soldes = {membre["id"]: 0 for membre in membres}
+
+        for depense in depenses:
+            participants = conn.execute(
+                "SELECT membre_id FROM participations WHERE depense_id = ? ORDER BY rowid",
+                [depense["id"]]
+            ).fetchall()
+
+            ids_participants = [p["membre_id"] for p in participants]
+
+            parts = repartir_depense(
+                depense["montant_centimes"],
+                ids_participants
+            )
+
+            soldes[depense["payeur_id"]] += depense["montant_centimes"]
+
+            for membre_id, part in parts.items():
+                soldes[membre_id] -= part
+
+    return soldes
 
 
 if __name__ == "__main__":
