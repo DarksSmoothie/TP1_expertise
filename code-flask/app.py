@@ -161,6 +161,14 @@ def ajouter_membre():
     groupe_id = request.form["groupe_id"]
 
     with ouvrir_base() as conn:
+        membre = conn.execute(
+            "SELECT id FROM membres WHERE groupe_id = ? AND nom = ?",
+            [groupe_id, nom]
+        ).fetchone()
+
+        if membre is not None:
+            return "Ce membre existe déjà dans ce groupe", 400
+
         conn.execute(
             "INSERT INTO membres (groupe_id, nom) VALUES (?, ?)",
             [groupe_id, nom]
