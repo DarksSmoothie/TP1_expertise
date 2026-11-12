@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS depenses (
     date TEXT NOT NULL,
     payeur_id INTEGER NOT NULL REFERENCES membres(id)
 );
+
 CREATE TABLE IF NOT EXISTS participants (
     depense_id INTEGER NOT NULL REFERENCES depenses(id) ON DELETE CASCADE,
     membre_id INTEGER NOT NULL REFERENCES membres(id),
@@ -32,6 +33,12 @@ CREATE TABLE IF NOT EXISTS remboursements (
     beneficiaire_id INTEGER NOT NULL REFERENCES membres(id),
     montant_centimes INTEGER NOT NULL,
     date TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS categories (
+    id INTEGER PRIMARY KEY,
+    nom TEXT NOT NULL,
+    description TEXT
 );
 
 -- Données d'exemple, chargées à la création de data.db.
