@@ -204,51 +204,35 @@ def supprimer_depense():
 
     return redirect("/")
 
-def repartir_depense(montant_centimes, participants):
-    if montant_centimes <= 0 or not participants:
-        raise ValueError("Dépense invalide")
-
-    part = montant_centimes // len(participants)
-    reste = montant_centimes % len(participants)
-
-    parts = {}
-
-    for i, participant_id in enumerate(participants):
-        parts[participant_id] = part + (reste if i == 0 else 0)
-
-    return parts
 
 def calculer_soldes(groupe_id):
     with ouvrir_base() as conn:
         membres = conn.execute(
-            "SELECT id FROM membres WHERE groupe_id = ?",
-            [groupe_id]
+            "SELECT id FROM membres WHERE groupe_id = ?", [groupe_id]
         ).fetchall()
 
         depenses = conn.execute(
-            "SELECT id, montant_centimes, payeur_id FROM depenses WHERE groupe_id = ?",
-            [groupe_id]
+            "SELECT * FROM depenses WHERE groupe_id = ?", [groupe_id]
         ).fetchall()
 
-        soldes = {membre["id"]: 0 for membre in membres}
+        soldes = {m["id"]: 0 for m in membres}
 
-        for depense in depenses:
+        for d in depenses:
             participants = conn.execute(
                 "SELECT membre_id FROM participants WHERE depense_id = ? ORDER BY rowid",
-                [depense["id"]]
+                [d["id"]]
             ).fetchall()
 
-            ids_participants = [p["membre_id"] for p in participants]
+            montant = d["montant_centimes"]
+            part = montant // len(participants)
+            reste = montant % len(participants)
 
-            parts = repartir_depense(
-                depense["montant_centimes"],
-                ids_participants
-            )
+            soldes[d["payeur_id"]] += montant
 
-            soldes[depense["payeur_id"]] += depense["montant_centimes"]
+            for p in participants:
+                soldes[p["membre_id"]] -= part
 
-            for membre_id, part in parts.items():
-                soldes[membre_id] -= part
+            soldes[participants[0]["membre_id"]] -= reste
 
     return soldes
 
