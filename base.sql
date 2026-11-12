@@ -6,15 +6,19 @@ CREATE TABLE IF NOT EXISTS groupes (
     date_debut TEXT NOT NULL,
     date_fin TEXT NOT NULL
 );
+
 CREATE TABLE IF NOT EXISTS membres (
     id INTEGER PRIMARY KEY,
     groupe_id INTEGER NOT NULL REFERENCES groupes(id) ON DELETE CASCADE,
-    nom TEXT NOT NULL
+    nom TEXT NOT NULL,
+    UNIQUE(groupe_id, nom)
 );
+
 CREATE TABLE IF NOT EXISTS depenses (
     id INTEGER PRIMARY KEY,
     groupe_id INTEGER NOT NULL REFERENCES groupes(id) ON DELETE CASCADE,
     libelle TEXT NOT NULL,
+    categorie_id INTEGER NOT NULL REFERENCES categories(id),
     montant_centimes INTEGER NOT NULL,
     date TEXT NOT NULL,
     payeur_id INTEGER NOT NULL REFERENCES membres(id)

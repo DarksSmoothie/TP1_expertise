@@ -26,7 +26,6 @@ PAGE = """
     <button>Ajouter</button>
 </form>
 
-
 <h2>Membres</h2>
 <ul>
 {% for m in membres %}
@@ -40,7 +39,6 @@ PAGE = """
     <button>Ajouter</button>
 </form>
 
-
 <h2>Catégories</h2>
 <ul>
 {% for c in categories %}
@@ -52,7 +50,6 @@ PAGE = """
     <input name="nom" placeholder="Nom de la catégorie" required>
     <button>Ajouter</button>
 </form>
-
 
 <h2>Dépenses</h2>
 <ul>
@@ -74,13 +71,12 @@ PAGE = """
         {% endfor %}
     </select>
 
-    <input name="montant_centimes" type="number" min="1" placeholder="Montant (centimes)" required>
+    <input name="montant_centimes" type="number" min="1" placeholder="Montant en centimes" required>
     <input name="date" type="date" required>
     <input name="payeur_id" type="number" placeholder="ID du payeur" required>
     <input name="participants" placeholder="Participants : 1,2,3" required>
     <button>Ajouter</button>
 </form>
-
 
 <h2>Supprimer une dépense</h2>
 <form method="post" action="/depenses/supprimer">
@@ -88,13 +84,11 @@ PAGE = """
     <button>Supprimer</button>
 </form>
 
-
 <h2>Remboursements</h2>
 <ul>
 {% for r in remboursements %}
     <li>
-        {{ r["payeur_id"] }} rembourse
-        {{ r["beneficiaire_id"] }} :
+        {{ r["payeur_id"] }} rembourse {{ r["beneficiaire_id"] }} :
         {{ "%.2f"|format(r["montant_centimes"] / 100) }} €
     </li>
 {% endfor %}
@@ -102,13 +96,12 @@ PAGE = """
 
 <form method="post" action="/remboursements">
     <input name="groupe_id" type="number" placeholder="ID du groupe" required>
-    <input name="payeur_id" type="number" placeholder="ID de celui qui rembourse" required>
-    <input name="beneficiaire_id" type="number" placeholder="ID de celui qui reçoit" required>
-    <input name="montant_centimes" type="number" min="1" placeholder="Montant (centimes)" required>
+    <input name="payeur_id" type="number" placeholder="ID du payeur" required>
+    <input name="beneficiaire_id" type="number" placeholder="ID du bénéficiaire" required>
+    <input name="montant_centimes" type="number" min="1" placeholder="Montant en centimes" required>
     <input name="date" type="date" required>
     <button>Rembourser</button>
 </form>
-
 
 <h2>Soldes</h2>
 <ul>
@@ -134,18 +127,13 @@ def accueil():
         remboursements = conn.execute("SELECT * FROM remboursements").fetchall()
 
     soldes = {}
-
     for g in groupes:
         soldes.update(calculer_soldes(g["id"]))
 
     return render_template_string(
-        PAGE,
-        groupes=groupes,
-        membres=membres,
-        categories=categories,
-        depenses=depenses,
-        remboursements=remboursements,
-        soldes=soldes
+        PAGE, groupes=groupes, membres=membres,
+        categories=categories, depenses=depenses,
+        remboursements=remboursements, soldes=soldes
     )
 
 
@@ -172,25 +160,7 @@ def ajouter_membre():
     nom = request.form["nom"].strip()
     groupe_id = request.form["groupe_id"]
 
-    if not nom:
-        return "Nom obligatoire", 400
-
     with ouvrir_base() as conn:
-        groupe = conn.execute(
-            "SELECT id FROM groupes WHERE id = ?", [groupe_id]
-        ).fetchone()
-
-        if groupe is None:
-            return "Groupe inexistant", 400
-
-        membre = conn.execute(
-            "SELECT id FROM membres WHERE groupe_id = ? AND nom = ?",
-            [groupe_id, nom]
-        ).fetchone()
-
-        if membre is not None:
-            return "Ce nom existe déjà dans ce groupe", 400
-
         conn.execute(
             "INSERT INTO membres (groupe_id, nom) VALUES (?, ?)",
             [groupe_id, nom]
@@ -208,8 +178,7 @@ def ajouter_categorie():
 
     with ouvrir_base() as conn:
         conn.execute(
-            "INSERT INTO categories (nom) VALUES (?)",
-            [nom]
+            "INSERT INTO categories (nom) VALUES (?)", [nom]
         )
 
     return redirect("/")
@@ -228,11 +197,8 @@ def ajouter_depense():
     if montant <= 0 or not libelle:
         return "Dépense invalide", 400
 
-    if not participants or "" in participants:
-        return "Il faut au moins un participant", 400
-
-    if len(participants) != len(set(participants)):
-        return "Participants en double", 400
+    if "" in participants or len(participants) != len(set(participants)):
+        return "Participants invalides", 400
 
     with ouvrir_base() as conn:
         groupe = conn.execute(
@@ -258,12 +224,8 @@ def ajouter_depense():
 
         ids = [str(m["id"]) for m in membres]
 
-        if payeur_id not in ids:
-            return "Payeur invalide", 400
-
-        for p in participants:
-            if p not in ids:
-                return "Participant invalide", 400
+        if payeur_id not in ids or any(p not in ids for p in participants):
+            return "Payeur ou participant invalide", 400
 
         depense_id = conn.execute(
             """INSERT INTO depenses
@@ -283,16 +245,14 @@ def ajouter_depense():
 
 @app.post("/depenses/supprimer")
 def supprimer_depense():
-    depense_id = request.form["id"]
-
     with ouvrir_base() as conn:
         conn.execute(
             "DELETE FROM participants WHERE depense_id = ?",
-            [depense_id]
+            [request.form["id"]]
         )
         conn.execute(
             "DELETE FROM depenses WHERE id = ?",
-            [depense_id]
+            [request.form["id"]]
         )
 
     return redirect("/")
@@ -301,16 +261,13 @@ def supprimer_depense():
 @app.post("/remboursements")
 def ajouter_remboursement():
     groupe_id = request.form["groupe_id"]
-    payeur_id = request.form["payeur_id"]
-    beneficiaire_id = request.form["beneficiaire_id"]
+    payeur = request.form["payeur_id"]
+    beneficiaire = request.form["beneficiaire_id"]
     montant = int(request.form["montant_centimes"])
     date = request.form["date"]
 
-    if montant <= 0:
-        return "Montant invalide", 400
-
-    if payeur_id == beneficiaire_id:
-        return "Un membre ne peut pas se rembourser lui-même", 400
+    if montant <= 0 or payeur == beneficiaire:
+        return "Remboursement invalide", 400
 
     with ouvrir_base() as conn:
         groupe = conn.execute(
@@ -329,14 +286,14 @@ def ajouter_remboursement():
 
         ids = [str(m["id"]) for m in membres]
 
-        if payeur_id not in ids or beneficiaire_id not in ids:
+        if payeur not in ids or beneficiaire not in ids:
             return "Membre invalide", 400
 
         conn.execute(
             """INSERT INTO remboursements
             (groupe_id, payeur_id, beneficiaire_id, montant_centimes, date)
             VALUES (?, ?, ?, ?, ?)""",
-            [groupe_id, payeur_id, beneficiaire_id, montant, date]
+            [groupe_id, payeur, beneficiaire, montant, date]
         )
 
     return redirect("/")
@@ -364,11 +321,10 @@ def calculer_soldes(groupe_id):
                 [d["id"]]
             ).fetchall()
 
-            montant = d["montant_centimes"]
-            part = montant // len(participants)
-            reste = montant % len(participants)
+            part = d["montant_centimes"] // len(participants)
+            reste = d["montant_centimes"] % len(participants)
 
-            soldes[d["payeur_id"]] += montant
+            soldes[d["payeur_id"]] += d["montant_centimes"]
 
             for p in participants:
                 soldes[p["membre_id"]] -= part
